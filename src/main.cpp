@@ -35,7 +35,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x");
+uint256 hashGenesisBlock("0x713278c18ddd16c25d837e562239185990859043f2e5c5f247d93005cc8f21a7");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // CLcoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2746,7 +2746,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc3;
         pchMessageStart[2] = 0xb7;
         pchMessageStart[3] = 0xdc;
-        hashGenesisBlock = uint256("0x");
+        hashGenesisBlock = uint256("0x713278c18ddd16c25d837e562239185990859043f2e5c5f247d93005cc8f21a7");
     }
 
     //
@@ -2793,12 +2793,12 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1525477720;
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 158858;
+        block.nNonce   = 2085812858;
 
         if (fTestNet)
         {
-            block.nTime    = 1525447875;
-            block.nNonce   = 158858;
+            block.nTime    = 1525477720;
+            block.nNonce   = 2085812858;
         }
 
         //// debug print
@@ -2806,9 +2806,10 @@ bool InitBlockIndex() {
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x"));
+        assert(block.hashMerkleRoot == uint256("0x53ce75cc0e9f756e5a28661f92eea79c082dfb888d1841c1fe1fc8d7787c7efa"));
 // If genesis block hash does not match, then generate new genesis hash.
-        if (true && block.GetHash() != hashGenesisBlock)
+       /*
+ if (true && block.GetHash() != hashGenesisBlock)
         {
             printf("Searching for genesis block...\n");
             // This will figure out a valid hash and Nonce if you're
@@ -2816,7 +2817,6 @@ bool InitBlockIndex() {
             uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
             uint256 thash;
             char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-
             loop
             {
 #if defined(USE_SSE2)
@@ -2850,6 +2850,7 @@ bool InitBlockIndex() {
             printf("block.nNonce = %u \n", block.nNonce);
             printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
         }
+*/
         block.print();
         assert(hash == hashGenesisBlock);
 
