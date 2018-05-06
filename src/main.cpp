@@ -35,7 +35,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x713278c18ddd16c25d837e562239185990859043f2e5c5f247d93005cc8f21a7");
+uint256 hashGenesisBlock("0xe930a7b101831a11c75ca33fa565a31c340950b2ab20dc5ebb6befa32c4f6d1b");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // CLcoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1087,7 +1087,7 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 50 * COIN;
+    int64 nSubsidy = 420 * COIN;
 
     // Subsidy is cut in half every 840000 blocks, which will occur approximately every 4 years
     nSubsidy >>= (nHeight / 840000); // CLcoin: 840k blocks in ~4 years
@@ -1095,8 +1095,8 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 10 * 30; // CLcoin: 5 min
-static const int64 nTargetSpacing = 1 * 30; // CLcoin: 2.5 minutes
+static const int64 nTargetTimespan = 3.5 * 24 * 60 * 60; // CLcoin: 3.5 Days (same as Litecoin)
+static const int64 nTargetSpacing = 2.5 * 60 ; // (Like Litecoin) CLcoin: 2.5 minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
@@ -1155,7 +1155,7 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
         return pindexLast->nBits;
     }
 
-    // CLcoin: This fixes an issue where a 51% attack can change difficulty at will.
+    // Litecoin: This fixes an issue where a 51% attack can change difficulty at will.
     // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
     int blockstogoback = nInterval-1;
     if ((pindexLast->nHeight+1) != nInterval)
@@ -2746,7 +2746,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc3;
         pchMessageStart[2] = 0xb7;
         pchMessageStart[3] = 0xdc;
-        hashGenesisBlock = uint256("0x713278c18ddd16c25d837e562239185990859043f2e5c5f247d93005cc8f21a7");
+        hashGenesisBlock = uint256("0xe930a7b101831a11c75ca33fa565a31c340950b2ab20dc5ebb6befa32c4f6d1b");
     }
 
     //
@@ -2784,73 +2784,72 @@ bool InitBlockIndex() {
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 50 * COIN;
+        txNew.vout[0].nValue = 420 * COIN;
         txNew.vout[0].scriptPubKey = CScript() << ParseHex("042a1ac0f0ad4d95f74739f7b3c073f9c9cefada8dc86b46c218e4a99a7b0933b0b5ab5329a979b1c36ea326567b6f2083a5e26f0522db408f3f20a1c18d1d1850") << OP_CHECKSIG;
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1525477720;
+        block.nTime    = 1525621792;
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 2085812858;
+        block.nNonce   = 2087959445;
 
         if (fTestNet)
         {
-            block.nTime    = 1525477720;
+            block.nTime    = 1525621792;
             block.nNonce   = 2085812858;
         }
+if (false && block.GetHash() != hashGenesisBlock)
+{
+  printf("Searching for genesis block...\n");
+  // This will figure out a valid hash and Nonce if you're
+  // creating a different genesis block:
+  uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+  uint256 thash;
+  char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 
+  loop
+  {
+    #if defined(USE_SSE2)
+    // Detection would work, but in cases where we KNOW it always has SSE2,
+    // it is faster to use directly than to use a function pointer or conditional.
+    #if defined(_M_X64) || defined(__x86_64__) || defined(_M_AMD64) || (defined(MAC_OSX) && defined(__i386__))
+    // Always SSE2: x86_64 or Intel MacOS X
+    scrypt_1024_1_1_256_sp_sse2(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+    #else
+    // Detect SSE2: 32bit x86 Linux or Windows
+    scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+    #endif
+    #else
+    // Generic scrypt
+    scrypt_1024_1_1_256_sp_generic(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+    #endif
+    if (thash <= hashTarget)
+    break;
+    if ((block.nNonce & 0xFFF) == 0)
+    {
+    printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
+    }
+    ++block.nNonce;
+    if (block.nNonce == 0)
+    {
+      printf("NONCE WRAPPED, incrementing time\n");
+      ++block.nTime;
+    }
+  }
+  printf("block.nTime = %u \n", block.nTime);
+  printf("block.nNonce = %u \n", block.nNonce);
+  printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
+}
         //// debug print
         uint256 hash = block.GetHash();
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x53ce75cc0e9f756e5a28661f92eea79c082dfb888d1841c1fe1fc8d7787c7efa"));
+        assert(block.hashMerkleRoot == uint256("0xe930a7b101831a11c75ca33fa565a31c340950b2ab20dc5ebb6befa32c4f6d1b"));
 // If genesis block hash does not match, then generate new genesis hash.
-       /*
- if (true && block.GetHash() != hashGenesisBlock)
-        {
-            printf("Searching for genesis block...\n");
-            // This will figure out a valid hash and Nonce if you're
-            // creating a different genesis block:
-            uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
-            uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-            loop
-            {
-#if defined(USE_SSE2)
-                // Detection would work, but in cases where we KNOW it always has SSE2,
-                // it is faster to use directly than to use a function pointer or conditional.
-#if defined(_M_X64) || defined(__x86_64__) || defined(_M_AMD64) || (defined(MAC_OSX) && defined(__i386__))
-                // Always SSE2: x86_64 or Intel MacOS X
-                scrypt_1024_1_1_256_sp_sse2(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
-#else
-                // Detect SSE2: 32bit x86 Linux or Windows
-                scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
-#endif
-#else
-                // Generic scrypt
-                scrypt_1024_1_1_256_sp_generic(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
-#endif
-                if (thash <= hashTarget)
-                    break;
-                if ((block.nNonce & 0xFFF) == 0)
-                {
-                    printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
-                }
-                ++block.nNonce;
-                if (block.nNonce == 0)
-                {
-                    printf("NONCE WRAPPED, incrementing time\n");
-                    ++block.nTime;
-                }
-            }
-            printf("block.nTime = %u \n", block.nTime);
-            printf("block.nNonce = %u \n", block.nNonce);
-            printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
-        }
-*/
+
         block.print();
         assert(hash == hashGenesisBlock);
 
