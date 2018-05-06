@@ -20,7 +20,7 @@ make USE_UPNP=-
 ```
 
 ### Note about compiling on linux
-Many compilation problems come from bad version of libboost, libssl, or libdb4.8 (source can be found [here](https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin))
+Many compilation problems come from bad version of libboost, libssl, or libdb4.8 (source can be found [here](https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin)).  
 If you have the error
 ```
 error: invalid use of incomplete type ‘BIGNUM {aka struct bignum_st}’
