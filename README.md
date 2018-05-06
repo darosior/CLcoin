@@ -26,4 +26,4 @@ make USE_UPNP=-
 ```
 
 #### Note about compiling on linux
-Many compilation problems come from bad version of libboost or libssl
+Many compilation problems come from bad version of libboost, libssl, or libdb4.8 (source can be found [here](https://launchpad.net/~bitcoin/+archive/ubuntu/bitcoin))
