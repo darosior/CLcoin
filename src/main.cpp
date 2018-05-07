@@ -2847,7 +2847,7 @@ if (false && block.GetHash() != hashGenesisBlock)
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0xe930a7b101831a11c75ca33fa565a31c340950b2ab20dc5ebb6befa32c4f6d1b"));
+        //assert(block.hashMerkleRoot == uint256("0xe930a7b101831a11c75ca33fa565a31c340950b2ab20dc5ebb6befa32c4f6d1b"));
 // If genesis block hash does not match, then generate new genesis hash.
 
         block.print();
